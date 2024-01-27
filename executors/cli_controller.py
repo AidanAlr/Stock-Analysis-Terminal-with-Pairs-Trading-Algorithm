@@ -1,5 +1,6 @@
 import os
 import sys
+
 # Get the directory of the current script
 # If the script is not in the root directory, navigate to the root directory
 # Append the root directory to sys.path so that modules can be imported
@@ -20,36 +21,38 @@ from executors import analysis_executor
 from executors import alpaca_executor
 
 
-def main_menu(alpaca: Alpaca):
-    # new line
+def main_menu(alpaca: Alpaca) -> str:
+    """ Displays the main menu and returns the user's choice. """
     sys.stdout.write("\n")
     emphasis_bold_red_print("Main Menu | " + "Alpaca Balance: $" + str(alpaca.account.buying_power))
-    blue_bold_print("1: Run analysis - Find Suitable Pair")
-    blue_bold_print("2: Current Positions - Live Portfolio")
-    blue_bold_print("3: Enter New Hedge Position")
-    blue_bold_print("4: Manual Trade")
-    blue_bold_print("5: Backtest Strategy")
+    blue_bold_print("1: Current Positions - Live Portfolio")
+    blue_bold_print("2: Run analysis - Find Suitable Pair")
+    blue_bold_print("3: Execute pairs trading strategy")
+    blue_bold_print("4: Backtest Strategy")
+    blue_bold_print("5: Manual Trade")
     choice = input("Please select an option: ")
     return choice
 
 
 def main():
+    """ Main function for the CLI controller. """
     alpaca_connection = Alpaca()
     while True:
         try:
             choice = main_menu(alpaca=alpaca_connection)
-            if choice not in ["1", "2", "3", "4", "5"]:
-                raise ValueError
-            elif choice == "1":
-                analysis_executor.run_analysis()
-            elif choice == "2":
-                alpaca_executor.live_position_menu(alpaca_connection)
-            elif choice == "3":
-                alpaca_executor.enter_new_hedge_position_menu(alpaca_connection)
-            elif choice == "4":
-                alpaca_executor.manual_trade_menu(alpaca_connection)
-            elif choice == "5":
-                analysis_executor.backtest_strategy()
+            match choice:
+                case "1":
+                    alpaca_executor.live_position_menu(alpaca_connection)
+                case "2":
+                    analysis_executor.run_analysis()
+                case "3":
+                    analysis_executor.execute_pairs_strategy([])
+                case "5":
+                    alpaca_executor.manual_trade_menu(alpaca_connection)
+                case "4":
+                    analysis_executor.backtest_strategy()
+                case _:  # Default case
+                    raise ValueError
         except ValueError:
             red_bold_print("Invalid input")
         except Exception as e:

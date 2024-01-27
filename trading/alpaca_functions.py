@@ -152,8 +152,12 @@ class Alpaca:
         stock_2_side = None
         if side == "buy":
             stock_2_side = OrderSide.SELL
+            logging.info("This position will purchase {} shares of {} and short {} shares of {} "
+                         .format(leverage, stock_1, hr * leverage, stock_2))
         elif side == "sell":
             stock_2_side = OrderSide.BUY
+            logging.info("This position will short {} shares of {} and purchase {} shares of {} "
+                         .format(leverage, stock_1, hr * leverage, stock_2))
 
         try:
             self.send_market_order(stock_1, leverage, side)
@@ -232,6 +236,22 @@ class Alpaca:
         else:
             print("No positions")
 
+    def get_absolute_unrealised_profit(self):
+        """
+        Calculates the absolute value of unrealized profit or loss across all positions.
+        Returns the absolute value of unrealized profit or loss.
+
+        Returns:
+        float: The absolute value of unrealized profit or loss.
+        """
+        try:
+            portfolio = self.client.get_all_positions()
+            profit = sum([float(position.unrealized_pl) for position in portfolio])
+            return profit
+
+        except Exception as e:
+            print(e)
+
     def get_unrealised_profit_pc(self):
         """
         Calculates the percentage of unrealized profit or loss across all positions.
@@ -242,16 +262,16 @@ class Alpaca:
         """
         try:
             portfolio = self.client.get_all_positions()
-            profit = sum([position.unrealized_pl for position in portfolio])
-            cost_basis = sum([position.cost_basis for position in portfolio])
+            cost_basis = sum([float(position.cost_basis) for position in portfolio])
 
             if cost_basis == 0:
                 return 0
 
-            return round((profit * 100 / cost_basis), 3)
+            profit_pc = round((self.get_absolute_unrealised_profit() * 100 / cost_basis), 3)
+            return profit_pc
 
-        except Exception:
-            pass
+        except Exception as e:
+            print(e)
 
     def check_and_take_profit(self, tp):
         """
@@ -302,44 +322,30 @@ class Alpaca:
             else:
                 return False
 
-    def live_profit_monitor(self):
+    def live_profit_monitor(self, seconds):
         """
         Continuously monitors the portfolio for profit percentage.
         Prints the current unrealized profit percentage and executes orders if conditions are met.
         """
 
-        def format_dataframe_as_table(df):
-            """
-            Formats the pandas DataFrame as a table for console display.
-            """
-            if df.empty:
-                return "No data available"
+        count = seconds
 
-            # Convert DataFrame to a string with uniform spacing between columns
-            df_string = df.to_string(index=False, header=False)
-
-            # Preparing header and separator
-            header = " | ".join(df.columns)
-            separator = "-+-".join(['-' * len(col) for col in df.columns])
-
-            # Assembling the table
-            return f"{header}\n{separator}\n{df_string}"
-
-        count = 15
-
-        while True:
+        while count > 0:
             try:
                 # Format the DataFrame as a table
-                table = format_dataframe_as_table(self.get_positions_df())
+                table = self.get_positions_df()
+                table = table[['symbol', 'side', 'qty', 'avg_entry_price', 'unrealized_pl']]
                 output = f'{count} Current Profit: {self.get_unrealised_profit_pc()} %'
-                sys.stdout.write("\r" + output + " -> Positions: ")  # Overwrite the line with padding
-                sys.stdout.write(table)  # Overwrite the line with padding
-                time.sleep(1)
-                count -= 1
-                sys.stdout.flush()
-                if count < 0:
-                    sys.stdout.flush()
-                    break
+                sys.stdout.write("\r" + output + "\n")
+                sys.stdout.write("Positions" + "\n")
+                # Overwrite the line with padding
+                with pd.option_context('display.max_rows', None,
+                                       'display.max_columns', None,
+                                       'display.precision', 3,
+                                       ):
+                    print(table)
+                time.sleep(3)
+                count -= 3
 
             except Exception as e:
                 print(f"An error occurred: {e}")
