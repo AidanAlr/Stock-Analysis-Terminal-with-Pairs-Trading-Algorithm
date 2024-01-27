@@ -38,7 +38,7 @@
 
 
 ## 📍 Overview
-This command line interface (CLI) application, developed to interact with the Alpaca API (stock brokerage), allows users to manage and view positions, execute trades, run analyses, backtest strategies, and implement a pairs trading strategy. This strategy involves identifying two suitable assets with highly correlated prices and using a rolling regression analysis to determine their pricing relationship. Subsequently, a trading signal is generated when the asset prices deviate from this relationship, allowing for strategic buying and shorting with the expectation that prices will revert to their usual spread. 
+This command line interface (CLI) application, developed to interact with the Alpaca API (stock brokerage), allows users to manage and view positions, execute trades, run analyses, backtest strategies, and implement a pairs trading strategy. 
 
 The code is organised in a modular format, with analysis and trading functions in separate directories. Executor files import functions and methods from these classes.
 
