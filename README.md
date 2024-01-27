@@ -38,20 +38,31 @@
 
 
 ## 📍 Overview
+This command line interface (CLI) application, developed to interact with the Alpaca API (stock brokerage), allows users to manage and view positions, execute trades, run analyses, backtest strategies, and implement a pairs trading strategy. This strategy involves identifying two suitable assets with highly correlated prices and using a rolling regression analysis to determine their pricing relationship. Subsequently, a trading signal is generated when the asset prices deviate from this relationship, allowing for strategic buying and shorting with the expectation that prices will revert to their usual spread. 
 
-► This Algorithm is separated into Analysis and Trading Functions.
-Analysis contains the statistical methods required to implement a statistical arbitrage strategy.
-Trading contains the methods that interact with the Alpaca API to execute the strategy.  
-The algorithm is configured to use my ALPACA paper account API key and secret.
-
-
+The code is organised in a modular format, with analysis and trading functions in separate directories. Executor files import functions and methods from these classes.
 
 ---
 
 ## 📦 Features
 
 ► Analysis
+Conduct the analysis required to find a suitable pair for statistical arbitrage. Submit a CSV file of stock tickers and the program will download the stock data from the last year and check the correlation between all assets. If a pair has a sufficiently high correlation, it is placed through ADF test to check the stationarity of the time series and cointegration tests for the suitability of the pair. Once a suitable pair is chosen, we use a  60-day rolling regression on the asset prices allowing us to generate the hedge ratio; we then analyse the relative spread between assets. When the spread exceeds a certain boundary, we will buy one asset and short the other expecting the spread to retract.
 
+You will be presented with the option to backtest the strategy as well.
+
+► Backtest strategy
+Dashboard that generates graphic representations of spread, zscored spread and strategy return.
+Allows you to test different strategies by adjusting take profits and stop loss.
+
+► Execute Pairs Trading Strategy
+Once you have chosen a pair execute and manage a pairs trading strategy directly from your terminal.
+
+► View current positions with profit and loss
+Dashboard for viewing all important metrics about current positions.
+
+► Manual Trade
+Option to conduct a manual trade, market or limit order.
 
 ---
 
