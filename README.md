@@ -184,27 +184,10 @@ pip install -r requirements.txt
 ```sh
 cd Pairs-trading-Algorithm/executors
 ```
-
-
-#### Running Analysis
-
 ```sh
-python -m AnalysisExecutor
+python -m cli_controller
 ```
 
-
-
-### 🤖 Running Pairs-Trading-Algorithm
-
-```sh
-python -m AlgorithmExecutor
-```
-
-### 🧪 Tests
-
-```sh
-
-```
 
 ---
 
