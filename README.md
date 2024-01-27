@@ -23,15 +23,10 @@
 - [📍 Overview](#-overview)
 - [📦 Features](#-features)
 - [📂 Repository Structure](#-repository-structure)
-- [⚙️ Modules](#modules)
 - [🚀 Getting Started](#-getting-started)
     - [🔧 Installation](#-installation)
     - [🤖 Running Pairs-Trading-Algorithm](#-running-Pairs-Trading-Algorithm)
-    - [🧪 Tests](#-tests)
-- [🛣 Roadmap](#-roadmap)
 - [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
-- [👏 Acknowledgments](#-acknowledgments)
 
 ---
 
