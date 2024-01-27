@@ -1,8 +1,7 @@
 <div align="center">
 <h1 align="center">
 <img src="" width="100" />
-<br>PAIRS-TRADING-ALGORITHM</h1>
-<h3>◦ Stock Analysis Terminal with Pairs Trading Algorithm</h3>
+<br> Stock Analysis Terminal with Pairs Trading Algorithm</h1>
 <h3>◦ Developed to interact with the ALPACA API with the software and tools below.</h3>
 
 <p align="center">
