@@ -67,6 +67,7 @@ def process_stock_data(symbols_list: List[str]) -> Optional[Tuple[str, str]]:
                 "Most Suitable Pair: {}, {}".format(stock_data.most_suitable_pair[0], stock_data.most_suitable_pair[1]))
             return stock_data.most_suitable_pair
         else:
+            print("There are no suitable pairs and you wont bypass the adf test.")
             return None
     except Exception as e:
         logging.error(f"An error occurred: {e}")
@@ -79,17 +80,20 @@ def run_analysis() -> None:
     while True:
         try:
             blue_bold_print("Ticker symbols list must be in a csv file.")
-            blue_bold_print("Please enter a path to a csv file containing a list of ticker symbols or enter b to go "
+            blue_bold_print("Please enter the absolute path to a csv file containing a list of ticker symbols, leaving this blank will use the default symbols.csv or enter b to go "
                             "back:")
             path = input()
             if path == 'b':
                 main_menu(alpaca=Alpaca())
+            if not path:
+                print(root_dir)
+                path = os.path.join(root_dir, 'symbols.csv')
 
             symbols_list = read_tickers_from_file(path)
+            logging.info("Tickers to analyse: " + str(symbols_list))
+            most_suitable_pair = process_stock_data(symbols_list)
 
-            if symbols_list is not None:
-                logging.info("Tickers to analyse: " + str(symbols_list))
-                most_suitable_pair = process_stock_data(symbols_list)
+            if symbols_list is not None and most_suitable_pair is not None:
                 strategy_info = collect_metrics_for_pair(most_suitable_pair[0], most_suitable_pair[1])
                 print(strategy_info)
                 hedge_ratio = strategy_info['hedge_ratio'].iloc[0]
