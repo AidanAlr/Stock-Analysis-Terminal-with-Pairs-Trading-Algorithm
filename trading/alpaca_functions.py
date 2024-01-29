@@ -17,8 +17,9 @@ from alpaca.trading import OrderSide, TimeInForce, PositionSide, Position
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import MarketOrderRequest, LimitOrderRequest
 from alpaca.trading.stream import TradingStream
+from trading.account_details import AccountDetails
 
-os.environ['APCA_API_BASE_URL'] = 'https://paper-api.alpaca.markets'
+os.environ['APCA_API_BASE_URL'] = AccountDetails.BASE_URL.value
 
 # Configure the logging; you can adjust the level and format as needed
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -30,7 +31,7 @@ def connect_to_trading_stream():
     Returns a TradingStream object if successful, else prints an error message.
     """
     try:
-        return TradingStream("PKNWSWFGL7X6F50PJ8UH", "1qpcAmhEmzxONh3Im0V6lzgqtVOX2xD3k7mViYLX", paper=True)
+        return TradingStream(AccountDetails.API_KEY.value, AccountDetails.API_SECRET.value, paper=True)
     except Exception as e:
         logging.error(e)
 
@@ -55,7 +56,7 @@ class Alpaca:
         and sets up trading stream.
         """
         self.connected = False
-        self.client = self.connect_to_alpaca("PKNWSWFGL7X6F50PJ8UH", "1qpcAmhEmzxONh3Im0V6lzgqtVOX2xD3k7mViYLX",
+        self.client = self.connect_to_alpaca(AccountDetails.API_KEY.value, AccountDetails.API_SECRET.value,
                                              paper=True)
         self.in_position = bool(self.client.get_all_positions())
         self.positions = self.client.get_all_positions()
