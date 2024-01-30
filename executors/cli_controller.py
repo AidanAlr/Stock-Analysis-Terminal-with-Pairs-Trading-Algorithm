@@ -30,6 +30,7 @@ def main_menu(alpaca: Alpaca) -> str:
     blue_bold_print("3: Execute pairs trading strategy")
     blue_bold_print("4: Backtest Strategy")
     blue_bold_print("5: Manual Trade")
+    blue_bold_print("6: Close all positions")
     choice = input("Please select an option: ")
     return choice
 
@@ -47,10 +48,12 @@ def main():
                     analysis_executor.run_analysis()
                 case "3":
                     analysis_executor.execute_pairs_strategy([])
+                case "4":
+                    analysis_executor.backtest_strategy([])
                 case "5":
                     alpaca_executor.manual_trade_menu(alpaca_connection)
-                case "4":
-                    analysis_executor.backtest_strategy()
+                case "6":
+                    alpaca_connection.close_all_positions()
                 case _:  # Default case
                     raise ValueError
         except ValueError:

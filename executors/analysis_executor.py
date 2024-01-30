@@ -68,7 +68,6 @@ def process_stock_data(symbols_list: List[str]) -> Optional[Tuple[str, str]]:
             return stock_data.most_suitable_pair
         else:
             print("There are no suitable pairs and you wont bypass the adf test.")
-            return None
     except Exception as e:
         logging.error(f"An error occurred: {e}")
 

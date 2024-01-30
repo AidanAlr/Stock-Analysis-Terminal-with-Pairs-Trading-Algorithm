@@ -29,12 +29,14 @@ def manual_trade_menu(alpaca: Alpaca):
         symbol = input("Symbol: ")
         side = input("Side (buy/sell): ")
 
+        # Validate input for quantity
         while True:
             qty = input("Quantity: ")
             if qty.isnumeric():
                 qty = float(qty)
                 break
 
+        # Limit order input
         if order_type == "limit":
 
             while True:
@@ -57,7 +59,9 @@ def manual_trade_menu(alpaca: Alpaca):
             else:
                 alpaca.send_limit_order(symbol, qty, side, limit_price)
 
+        # Market order input
         elif order_type == "market":
+            # alpaca.get_assset_price(symbol)
             alpaca.send_market_order(symbol, qty, side)
 
     except Exception as e:

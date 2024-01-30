@@ -3,7 +3,8 @@ import sys
 import time
 import logging
 
-from utils.formatting_and_logs import green_bold_print, red_bold_print
+from trading import account_details
+from utils.formatting_and_logs import green_bold_print, red_bold_print, blue_bold_print
 
 # Get the directory of the current script
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -104,7 +105,7 @@ class Alpaca:
                     side=side,
                     time_in_force=TimeInForce.DAY
                 ))
-            green_bold_print("{} market order executed for {} shares of {}".format(side, qty, symbol))
+            blue_bold_print("Market order executed: {}  {} shares of {}".format(side, qty, symbol.upper()))
         except Exception as e:
             print(e)
 
@@ -160,9 +161,10 @@ class Alpaca:
             logging.info("This position will short {} shares of {} and purchase {} shares of {} "
                          .format(leverage, stock_1, hr * leverage, stock_2))
 
+        side_map = {OrderSide.BUY: "buy", OrderSide.SELL: "sell"}
         try:
             self.send_market_order(stock_1, leverage, side)
-            self.send_market_order(stock_2, round(hr * leverage, 2), stock_2_side)
+            self.send_market_order(stock_2, round(hr * leverage, 2), side_map[stock_2_side])
             red_bold_print("Hedge position filled!")
         except Exception as e:
             print(e)
@@ -303,7 +305,6 @@ class Alpaca:
                 print("Stopped Loss")
 
     def close_all_positions(self):
-        # This needs to be fixed and we should split this into other methods that limit orders and market orders
         """
         Closes all positions by submitting market or limit orders.
         If unable to submit a market order, it submits a limit order at the current price.
@@ -312,16 +313,27 @@ class Alpaca:
         Returns:
         bool: True if all positions are closed successfully, False otherwise.
         """
-        close_info = self.client.close_all_positions(cancel_orders=True)
-        for order in close_info:
-            order = order.body
-            side_map = {OrderSide.BUY: "buy", OrderSide.SELL: "sell"}
-            print(
-                f"Attempted to {side_map[order.side]} {order.qty} shares of {order.symbol}. {order.filled_qty} orders filled for {order.filled_avg_price}")
-            if order.filled_qty == order.qty:
-                return True
-            else:
-                return False
+        self.in_position = bool(self.client.get_all_positions())
+        if not self.in_position:
+            print("No positions to close")
+            return False
+        else:
+            try:
+                close_info = self.client.close_all_positions(cancel_orders=True)
+                time.sleep(5)
+                for order in close_info:
+                    order = order.body
+                    side_map = {OrderSide.BUY: "buy", OrderSide.SELL: "sell"}
+                    sale_value = float(order.filled_qty) * float(order.filled_avg_price)
+                    print(
+                        f"Status: {order.status} - Attempted to {side_map[order.side]} {order.qty} shares of {order.symbol}. Filled {order.filled_qty} orders "
+                        f"at {order.filled_avg_price}, returning {sale_value}")
+                    if order.filled_qty == order.qty:
+                        return True
+                    else:
+                        return False
+            except Exception as e:
+                print(e)
 
     def live_profit_monitor(self, seconds):
         """
@@ -330,27 +342,32 @@ class Alpaca:
         """
 
         count = seconds
+        self.in_position = bool(self.client.get_all_positions())
 
-        while count > 0:
-            try:
-                # Format the DataFrame as a table
-                table = self.get_positions_df()
-                table = table[['symbol', 'side', 'qty', 'avg_entry_price', 'unrealized_pl']]
-                output = f'{count} Current Profit: {self.get_unrealised_profit_pc()} %'
-                sys.stdout.write("\r" + output + "\n")
-                sys.stdout.write("Positions" + "\n")
-                # Overwrite the line with padding
-                with pd.option_context('display.max_rows', None,
-                                       'display.max_columns', None,
-                                       'display.precision', 3,
-                                       ):
-                    print(table)
-                time.sleep(3)
-                count -= 3
+        if self.in_position:
+            while count > 0:
+                try:
+                    # Format the DataFrame as a table
+                    table = self.get_positions_df()
+                    table = table[['symbol', 'side', 'qty', 'avg_entry_price', 'unrealized_pl']]
+                    curr_time = pd.Timestamp.now().time().strftime("%X")
+                    output = f'{curr_time} Current Profit: {self.get_unrealised_profit_pc()} %'
+                    sys.stdout.write("\r" + output + "\n")
+                    sys.stdout.write("Positions" + "\n")
+                    # Overwrite the line with padding
+                    with pd.option_context('display.max_rows', None,
+                                           'display.max_columns', None,
+                                           'display.precision', 3,
+                                           ):
+                        print(table)
+                    time.sleep(3)
+                    count -= 3
 
-            except Exception as e:
-                print(f"An error occurred: {e}")
-                break
+                except Exception as e:
+                    print(f"An error occurred: {e}")
+                    break
+        else:
+            print("No positions to monitor")
 
     def use_live_tp_sl(self, tp: int | float, sl: int | float):
         """
@@ -364,13 +381,37 @@ class Alpaca:
         """
 
         self.print_positions()
-        count = 0
+        current_time = pd.Timestamp.now()
         while True:
             # Continue while the pause thread is running
-            output = f'{count} Current Profit: {self.get_unrealised_profit_pc()} %'
+            output = f'{current_time} Current Profit: {self.get_unrealised_profit_pc()} %'
             self.check_and_stop_loss(sl)
             self.check_and_take_profit(tp)
             sys.stdout.write("\r" + output)  # Overwrite the line with padding
             time.sleep(5)
             sys.stdout.flush()
-            count += 1
+
+    def get_assset_price(self, symbol: str) -> float:
+        """
+        Retrieves the current price of the given asset.
+        Args:
+            symbol: The symbol of the asset to retrieve the price for.
+        Returns:
+            The current price of the asset.
+        """
+        from alpaca.data.historical import StockHistoricalDataClient
+        from alpaca.data.requests import StockLatestQuoteRequest
+
+        # no keys required
+        client = StockHistoricalDataClient("PKNWSWFGL7X6F50PJ8UH", "1qpcAmhEmzxONh3Im0V6lzgqtVOX2xD3k7mViYLX")
+
+        # single symbol request
+        request_params = StockLatestQuoteRequest(symbol_or_symbols=symbol)
+
+        latest_quote = client.get_stock_latest_quote(request_params)
+
+        # must use symbol to access even though it is single symbol
+        price = latest_quote[symbol].ask_price
+        print(f"Quoted price: {price}")
+
+        return price
