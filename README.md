@@ -38,6 +38,14 @@ The code is organised in a modular format, with analysis and trading functions i
 
 ---
 
+
+## Demo
+
+[Terminal Demo.mp4](Terminal%20Demo.mp4)
+
+---
+
+
 ## 📦 Features
 
 ► Analysis
