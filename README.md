@@ -194,7 +194,7 @@ cd Pairs-trading-Algorithm
 pip install -r requirements.txt
 ```
 ```sh
-add account details to 
+add account details to trading/account_details.py
 ```
 4. 
 
