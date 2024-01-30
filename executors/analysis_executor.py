@@ -107,58 +107,71 @@ def run_analysis() -> None:
         except Exception as e:
             print(e)
 
+def check_signal(pair: List):
+    strategy_info = collect_metrics_for_pair(pair[0], pair[1])
+    signal = strategy_info.tail(1)['signal'].item()
+    signal_string = "Long" if signal == 1 else "Short" if signal == -1 else "Neutral"
+    red_bold_print(f"The signal is {signal_string} on this pair.")
+    return signal
+
 
 def execute_pairs_strategy(pair: List):
-    if not pair:
-        blue_bold_print("Please enter the pair you would like use in the format stock_1, stock_2:")
-        pair_input = input()
-        pair = [pair.strip() for pair in pair_input.split(',')]
-    try:
-        logging.info(f"Tickers to execute strategy are: {pair[0]} and {pair[1]}")
-        strategy_info = collect_metrics_for_pair(pair[0], pair[1])
-        hedge_ratio = strategy_info['hedge_ratio'].iloc[0]
-        logging.info("The hedge ratio for this pair is: " + str(hedge_ratio))
-        leverage = float(input("Please enter your selected leverage:"))
-        confirmed = input("Type confirm to execute the strategy, type anything else to abort and return "
-                          "to main menu ").lower() == 'confirm'
-        if confirmed:
-
-            alpaca = Alpaca()
-
-            while True:
-
+    alpaca = Alpaca()
+    if alpaca.in_position:
+        red_bold_print("You are currently in a position, please exit the position before executing a new strategy.")
+    else:
+        if not pair:
+            try:
+                blue_bold_print("Please enter the pair you would like use in the format stock_1, stock_2:")
+                pair_input = input()
+                pair = [pair.strip() for pair in pair_input.split(',')]
+                logging.info(f"Tickers to execute strategy are: {pair[0]} and {pair[1]}")
                 strategy_info = collect_metrics_for_pair(pair[0], pair[1])
-                signal = strategy_info.tail(1)['signal'].item()
-                signal_string = "Long" if signal == 1 else "Short" if signal == -1 else "Neutral"
-                print(f"The signal is {signal_string} on this pair.")
+                hedge_ratio = strategy_info['hedge_ratio'].iloc[0]
+                logging.info("The hedge ratio for this pair is: " + str(hedge_ratio))
+                leverage = float(input("Please enter your selected leverage:"))
+                red_bold_print("Enter your take profit and stop loss in the format 0.1, 0.05")
+                tp, sl = input().split(',')
+                tp = float(tp.strip())
+                sl = float(sl.strip())
+                confirmed = input("Type confirm to execute the strategy, type anything else to abort and return "
+                                  "to main menu ").lower() == 'confirm'
+                if confirmed:
 
-                if alpaca.in_position:
-                    logging.info("You are currently in a position so will not execute a new trade.")
+                    while True:
 
-                    if signal == 0:
-                        logging.info("Analysis wants to exit positions.")
-                        for symbol in pair:
-                            alpaca.close_position_for_symbol(symbol)
+                        # Profit and loss monitoring
+                        if alpaca.check_and_stop_loss(sl) or alpaca.check_and_take_profit(tp):
+                            "This strategy has exited due to take profit or stop loss."
+                            break
 
-                elif not alpaca.in_position:
-                    match signal:
-                        case 1:
-                            logging.info("Analysis has deemed an opportunity for a long hedge position")
-                            alpaca.enter_hedge_position(pair[0], pair[1],
-                                                        side="buy", hr=hedge_ratio, leverage=leverage)
-                        case -1:
-                            logging.info("Analysis has deemed an opportunity for a short hedge position")
-                            alpaca.enter_hedge_position(pair[0], pair[1],
-                                                        side="sell", hr=hedge_ratio, leverage=leverage)
+                        signal = check_signal(pair)
 
-                # Displaying live profit and sleeping for 60 seconds
-                alpaca.live_profit_monitor(60)
+                        if alpaca.in_position:
+                            logging.info("You are currently in a position so will not execute a new trade.")
 
-        else:
-            main_menu(alpaca=Alpaca())
+                            if signal == 0:
+                                logging.info("Analysis wants to exit positions.")
+                                for symbol in pair:
+                                    alpaca.close_position_for_symbol(symbol)
 
-    except Exception as e:
-        print(e)
+                        elif not alpaca.in_position:
+                            match signal:
+                                case 1:
+                                    logging.info("Analysis has deemed an opportunity for a long hedge position")
+                                    alpaca.enter_hedge_position(pair[0], pair[1],
+                                                                side="buy", hr=hedge_ratio, leverage=leverage)
+                                case -1:
+                                    logging.info("Analysis has deemed an opportunity for a short hedge position")
+                                    alpaca.enter_hedge_position(pair[0], pair[1],
+                                                                side="sell", hr=hedge_ratio, leverage=leverage)
+
+                        # Displaying live profit and sleeping for 60 seconds
+                        alpaca.live_profit_monitor(30)
+
+
+            except Exception as e:
+                print(e)
 
 
 def backtest_strategy(pair: List or Tuple) -> None:

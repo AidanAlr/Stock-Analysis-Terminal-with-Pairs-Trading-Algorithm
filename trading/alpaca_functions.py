@@ -3,7 +3,11 @@ import sys
 import time
 import logging
 
+import alpaca
+from alpaca.data import StockLatestQuoteRequest
+
 from trading import account_details
+from utils.countdown import countdown
 from utils.formatting_and_logs import green_bold_print, red_bold_print, blue_bold_print
 
 # Get the directory of the current script
@@ -19,6 +23,7 @@ from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import MarketOrderRequest, LimitOrderRequest
 from alpaca.trading.stream import TradingStream
 from trading.account_details import AccountDetails
+from alpaca.data.historical import StockHistoricalDataClient
 
 os.environ['APCA_API_BASE_URL'] = AccountDetails.BASE_URL.value
 
@@ -41,6 +46,30 @@ def pause_algo(seconds):
     for remaining in range(seconds, 0, -1):
         sys.stdout.write("\r" + "Paused Algorithm: {:2d} seconds remaining.".format(remaining))
         time.sleep(1)
+
+
+def get_asset_price(symbol: str) -> float:
+    """
+    Retrieves the current price of the given asset.
+    Args:
+        symbol: The symbol of the asset to retrieve the price for.
+    Returns:
+        The current price of the asset.
+    """
+
+    symbol = symbol.upper()
+    # no keys required
+    client = StockHistoricalDataClient(AccountDetails.API_KEY.value, AccountDetails.API_SECRET.value)
+
+    # single symbol request
+    request_params = StockLatestQuoteRequest(symbol_or_symbols=symbol)
+
+    latest_quote = client.get_stock_latest_quote(request_params)
+
+    # must use symbol to access even though it is single symbol
+    price = latest_quote[symbol].ask_price
+
+    return float(price)
 
 
 class Alpaca:
@@ -105,7 +134,10 @@ class Alpaca:
                     side=side,
                     time_in_force=TimeInForce.DAY
                 ))
-            blue_bold_print("Market order executed: {}  {} shares of {}".format(side, qty, symbol.upper()))
+            red_bold_print("Market order: {} {} shares of {} - EXECUTED AT ${}".format(side,
+                                                                                       qty,
+                                                                                       symbol.upper(),
+                                                                                       get_asset_price(symbol)))
         except Exception as e:
             print(e)
 
@@ -283,12 +315,12 @@ class Alpaca:
         Args:
         tp (float): The profit threshold percentage to trigger selling.
         """
-        assert tp > 0, "Stop loss must be a positive value"
+        assert tp > 0, "Take profit must be a positive value"
+        logging.warning("Checking if take profit is triggered...")
 
         if self.get_unrealised_profit_pc() > tp:
-            print("Executing orders to take profit...")
-            if self.close_all_positions():
-                print("Took profit")
+            logging.info("Executing orders to take profit...")
+            return self.close_all_positions()
 
     def check_and_stop_loss(self, sl):
         """
@@ -299,10 +331,10 @@ class Alpaca:
         """
         sl = abs(sl) * -1
         assert sl <= 0, "Stop loss must be a negative value"
+        logging.warning("Checking if stop loss is triggered...")
         if self.get_unrealised_profit_pc() < sl:
-            print("Executing orders to stop loss")
-            if self.close_all_positions():
-                print("Stopped Loss")
+            logging.info("Executing stop loss orders...")
+            return self.close_all_positions()
 
     def close_all_positions(self):
         """
@@ -314,31 +346,34 @@ class Alpaca:
         bool: True if all positions are closed successfully, False otherwise.
         """
         self.in_position = bool(self.client.get_all_positions())
+
         if not self.in_position:
             print("No positions to close")
             return False
+
         else:
             try:
                 close_info = self.client.close_all_positions(cancel_orders=True)
-                time.sleep(5)
+                countdown(2)
+
                 for order in close_info:
                     order = order.body
                     side_map = {OrderSide.BUY: "buy", OrderSide.SELL: "sell"}
-                    sale_value = float(order.filled_qty) * float(order.filled_avg_price)
                     print(
-                        f"Status: {order.status} - Attempted to {side_map[order.side]} {order.qty} shares of {order.symbol}. Filled {order.filled_qty} orders "
-                        f"at {order.filled_avg_price}, returning {sale_value}")
-                    if order.filled_qty == order.qty:
-                        return True
-                    else:
-                        return False
+                        f"Status: {order.status.value} - Attempted to {side_map[order.side]} {order.qty} shares of {order.symbol}"
+                        f" at ${get_asset_price(order.symbol)}")
+
+                countdown(3)
+                self.in_position = bool(self.client.get_all_positions())
+                print(f"Exited positions: {not self.in_position}")
+                return not self.in_position
+
             except Exception as e:
-                print(e)
+                print(f"Exception occured closing positions: {e}")
 
     def live_profit_monitor(self, seconds):
         """
-        Continuously monitors the portfolio for profit percentage.
-        Prints the current unrealized profit percentage and executes orders if conditions are met.
+        Prints the current unrealized profit percentage
         """
 
         count = seconds
@@ -368,50 +403,3 @@ class Alpaca:
                     break
         else:
             print("No positions to monitor")
-
-    def use_live_tp_sl(self, tp: int | float, sl: int | float):
-        """
-        Continuously monitors the portfolio for take profit (tp)
-         or stop loss (sl) conditions.
-        Prints the current unrealized profit percentage and executes orders if conditions are met.
-
-        Args:
-        tp (float): Take profit threshold percentage.
-        sl (float): Stop loss threshold percentage.
-        """
-
-        self.print_positions()
-        current_time = pd.Timestamp.now()
-        while True:
-            # Continue while the pause thread is running
-            output = f'{current_time} Current Profit: {self.get_unrealised_profit_pc()} %'
-            self.check_and_stop_loss(sl)
-            self.check_and_take_profit(tp)
-            sys.stdout.write("\r" + output)  # Overwrite the line with padding
-            time.sleep(5)
-            sys.stdout.flush()
-
-    def get_assset_price(self, symbol: str) -> float:
-        """
-        Retrieves the current price of the given asset.
-        Args:
-            symbol: The symbol of the asset to retrieve the price for.
-        Returns:
-            The current price of the asset.
-        """
-        from alpaca.data.historical import StockHistoricalDataClient
-        from alpaca.data.requests import StockLatestQuoteRequest
-
-        # no keys required
-        client = StockHistoricalDataClient("PKNWSWFGL7X6F50PJ8UH", "1qpcAmhEmzxONh3Im0V6lzgqtVOX2xD3k7mViYLX")
-
-        # single symbol request
-        request_params = StockLatestQuoteRequest(symbol_or_symbols=symbol)
-
-        latest_quote = client.get_stock_latest_quote(request_params)
-
-        # must use symbol to access even though it is single symbol
-        price = latest_quote[symbol].ask_price
-        print(f"Quoted price: {price}")
-
-        return price
