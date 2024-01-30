@@ -125,12 +125,14 @@ Option to quickly exit all positions.
 
 <details closed><summary>Analysis</summary>
 
-| File                                                                                                                  | Summary       |
-| ---                                                                                                                   | ---           |
-| [Visualisation.py](https://github.com/AidanAlr/Pairs-Trading-Algorithm/blob/main/Analysis/Visualisation.py)           | ► Functions to visualise important metrics |
-| [StockData.py](https://github.com/AidanAlr/Pairs-Trading-Algorithm/blob/main/Analysis/StockData.py)                   | ► StockData class and methods |
-| [Dates.py](https://github.com/AidanAlr/Pairs-Trading-Algorithm/blob/main/Analysis/Dates.py)                           | ► Enum for dates |
-| [StatisticalMethods.py](https://github.com/AidanAlr/Pairs-Trading-Algorithm/blob/main/Analysis/StatisticalMethods.py) | ► Functions performing statisticaly analysis on StockData |
+| File                                                                                                                                                 | Summary                   |
+| ---                                                                                                                                                  | ---                       |
+| [statistical_methods.py](https://github.com/AidanAlr/Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/blob/main/analysis/statistical_methods.py) | ► Functions to visualise important metrics |
+| [visualisation.py](https://github.com/AidanAlr/Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/blob/main/analysis/visualisation.py)             | ► Functions to visualise important metrics |
+| [DATES.py](https://github.com/AidanAlr/Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/blob/main/analysis/DATES.py)                             | ► StockData class and methods |
+| [errors.py](https://github.com/AidanAlr/Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/blob/main/analysis/errors.py)                           | ► Enum for dates |
+| [stock_data.py](https://github.com/AidanAlr/Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/blob/main/analysis/stock_data.py)                   | ► Functions performing statisticaly analysis on StockData |
+
 
 </details>
 
@@ -144,27 +146,30 @@ Option to quickly exit all positions.
 
 <details closed><summary>Executors</summary>
 
-| File                                                                                                                 | Summary       |
-| ---                                                                                                                  | ---           |
-| [AnalysisExecutor.py](https://github.com/AidanAlr/Pairs-Trading-Algorithm/blob/main/Executors/AnalysisExecutor.py)   | ► Executor for analysis |
-| [AlgorithmExecutor.py](https://github.com/AidanAlr/Pairs-Trading-Algorithm/blob/main/Executors/AlgorithmExecutor.py) | ► Executor for algorithm |
+| File                                                                                                                                              | Summary                   |
+| ---                                                                                                                                               | ---                       |
+| [cli_controller.py](https://github.com/AidanAlr/Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/blob/main/executors/cli_controller.py)       | ► Main entry point into program - main_menu handler |
+| [alpaca_executor.py](https://github.com/AidanAlr/Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/blob/main/executors/alpaca_executor.py)     | ► Executor for trading functions |
+| [analysis_executor.py](https://github.com/AidanAlr/Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/blob/main/executors/analysis_executor.py) | ► Executor for analysis functions |
 
 </details>
 
 <details closed><summary>Aidanutils</summary>
-
-| File                                                                                                      | Summary       |
-| ---                                                                                                       | ---           |
-| [MyTimer.py](https://github.com/AidanAlr/Pairs-Trading-Algorithm/blob/main/AidanUtils/MyTimer.py)         | ► INSERT-TEXT |
-| [ProgressBar.py](https://github.com/AidanAlr/Pairs-Trading-Algorithm/blob/main/AidanUtils/ProgressBar.py) | ► INSERT-TEXT |
+| File                                                                                                                                              | Summary                   |
+| ---                                                                                                                                               | ---                       |
+| [my_timer.py](https://github.com/AidanAlr/Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/blob/main/utils/my_timer.py)                       | ► Timer decorator for functions |
+| [formatting_and_logs.py](https://github.com/AidanAlr/Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/blob/main/utils/formatting_and_logs.py) | ► Log helper |
+| [ProgressBar.py](https://github.com/AidanAlr/Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/blob/main/utils/ProgressBar.py)                 | ► Progress bar printer |
+| [countdown.py](https://github.com/AidanAlr/Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/blob/main/utils/countdown.py)                     | ► Countdown function | 
 
 </details>
 
 <details closed><summary>Trading</summary>
 
-| File                                                                                                           | Summary       |
-| ---                                                                                                            | ---           |
-| [AlpacaFunctions.py](https://github.com/AidanAlr/Pairs-Trading-Algorithm/blob/main/Trading/AlpacaFunctions.py) | ► INSERT-TEXT |
+| File                                                                                                                                          | Summary                   |
+| ---                                                                                                                                           | ---                       |
+| [alpaca_functions.py](https://github.com/AidanAlr/Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/blob/main/trading/alpaca_functions.py) | ► Interact with ALPACA API |
+| [account_details.py](https://github.com/AidanAlr/Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/blob/main/trading/account_details.py)   | ► Account details enum for user input |
 
 </details>
 
@@ -188,6 +193,10 @@ cd Pairs-trading-Algorithm
 ```sh
 pip install -r requirements.txt
 ```
+```sh
+add account details to 
+```
+4. 
 
 ### 🤖 Running Program
 1. Change to the Executors directory:
