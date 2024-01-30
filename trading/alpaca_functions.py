@@ -4,6 +4,7 @@ import time
 import logging
 
 import alpaca
+import yfinance
 from alpaca.data import StockLatestQuoteRequest
 
 from trading import account_details
@@ -59,7 +60,7 @@ def get_asset_price(symbol: str) -> float:
 
     symbol = symbol.upper()
     # no keys required
-    client = StockHistoricalDataClient(AccountDetails.API_KEY.value, AccountDetails.API_SECRET.value)
+    client = StockHistoricalDataClient("PKNWSWFGL7X6F50PJ8UH", "1qpcAmhEmzxONh3Im0V6lzgqtVOX2xD3k7mViYLX")
 
     # single symbol request
     request_params = StockLatestQuoteRequest(symbol_or_symbols=symbol)
@@ -68,8 +69,10 @@ def get_asset_price(symbol: str) -> float:
 
     # must use symbol to access even though it is single symbol
     price = latest_quote[symbol].ask_price
+    if price == 0:
+        price = round(yfinance.download(tickers=symbol, period="1d", interval="1m")['Adj Close'].iloc[-1],2)
 
-    return float(price)
+    return price
 
 
 class Alpaca:
