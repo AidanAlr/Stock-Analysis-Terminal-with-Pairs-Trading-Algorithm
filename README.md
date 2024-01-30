@@ -71,17 +71,23 @@ Dashboard for viewing all important metrics about current positions.
 
 Option to conduct a manual trade, market or limit order.
 
+► Get Quote
+
+Option to conduct get the market price of an asset.
+
+
+► Close All Positions 
+
+Option to quickly exit all positions.
+
 ---
 
 
 ## 📂 Repository Structure
 
 ```sh
-└── Pairs-trading-Algorithm/
-    ├── utils/
-    │   ├── my_timer.py
-    │   ├── ProgressBar.py
-    │   ├── formatting_and_logs.py
+└── Stock-Analysis-Terminal-with-Pairs-Trading-Algorithm/
+    ├── requirements.txt
     ├── analysis/
     │   ├── DATES.py
     │   ├── errors.py
@@ -92,13 +98,14 @@ Option to conduct a manual trade, market or limit order.
     │   ├── alpaca_executor.py
     │   ├── analysis_executor.py
     │   └── cli_controller.py
-    ├── tests/
-    │   ├── test_alpaca.py
-    │   └── test_collect_metrics_for_pair.py
     ├── trading/
+    │   ├── account_details.py
     │   └── alpaca_functions.py
-    ├── requirements.txt
-    └── to_do_list.txt
+    └── utils/
+        ├── ProgressBar.py
+        ├── countdown.py
+        ├── formatting_and_logs.py
+        └── my_timer.py
 
 ```
 
